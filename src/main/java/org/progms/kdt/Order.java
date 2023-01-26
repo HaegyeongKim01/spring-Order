@@ -7,20 +7,20 @@ public class Order {   //ENTITY  //비즈니스 lOGIC이 들어간다.
     private final UUID orderId;
     private final UUID customerId;
     private final List<OrderItem> orderItems;
-    private FixedAmountVoucher fixedAmountVoucher;
+    private Voucher voucher;
     private OrderStatus orderStatus;
 
-    public Order(UUID orderId, UUID customerId, List<OrderItem> orderItems, long discountAmount) {
+    public Order(UUID orderId, UUID customerId, List<OrderItem> orderItems, Voucher voucher) {
         this.orderId = orderId;
         this.customerId = customerId;
         this.orderItems = orderItems;
-        this.fixedAmountVoucher = new FixedAmountVoucher(discountAmount);   //매개변수로 받은 값을 객체 생성 인자에 put하여 객체 인스턴스 생성
+        this.voucher = voucher;
     }
 
     public long totalAmount(){
         var beforeDiscount = orderItems.stream().map(v -> v.getProductPrice()*v.getQuantity())
                 .reduce(0L, Long::sum);
-        return fixedAmountVoucher.discount(beforeDiscount);
+        return voucher.discount(beforeDiscount);
     }
 
     public void setOrderStatus(OrderStatus orderStatus) {
