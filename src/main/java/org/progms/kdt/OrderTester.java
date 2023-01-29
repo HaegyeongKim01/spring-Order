@@ -19,6 +19,12 @@ public class OrderTester {
         var customerId = UUID.randomUUID();
 
         var voucherRepository = applicationContext.getBean(VoucherRepository.class);
+        var voucherRepository2 = applicationContext.getBean(VoucherRepository.class);
+        System.out.println(MessageFormat.format("voucherRepository {0}", voucherRepository));
+        System.out.println(MessageFormat.format("voucherRepository2 {0}", voucherRepository2));
+        System.out.println(MessageFormat.format("voucherRepository ==voucherRepository2 => {0}", voucherRepository==voucherRepository));
+        //same == SINGLETON
+
         var voucher = voucherRepository.insert(new FixedAmountVoucher(UUID.randomUUID(), 10L));
 
         var orderService = applicationContext.getBean(OrderService.class);
