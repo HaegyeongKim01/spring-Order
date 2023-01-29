@@ -4,6 +4,7 @@ import org.progms.kdt.order.OrderItem;
 import org.progms.kdt.order.OrderService;
 import org.progms.kdt.voucher.FixedAmountVoucher;
 import org.progms.kdt.voucher.VoucherRepository;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.util.Assert;
 
@@ -33,5 +34,8 @@ public class OrderTester {
         }}, voucher.getVoucher());
 
         Assert.isTrue(order.totalAmount() == 90L, MessageFormat.format("totalAmount {0} is not 100L", order.totalAmount()));
+
+        //Container에 등록된 모든 Bean이 소멸하고 소멸에 대한 콜백이 일어난다.
+        applicationContext.close();
     }
 }
