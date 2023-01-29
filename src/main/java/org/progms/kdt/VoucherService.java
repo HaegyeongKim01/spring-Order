@@ -7,7 +7,7 @@ public class VoucherService {
     private final VoucherRepository voucherRepository;
 
     public VoucherService(VoucherRepository voucherRepository) {
-        this.voucherRepository = this.voucherRepository;
+        this.voucherRepository = voucherRepository;
     }
 
     public Voucher getVoucher(UUID voucherId) {
