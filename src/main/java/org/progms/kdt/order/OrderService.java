@@ -1,4 +1,7 @@
-package org.progms.kdt;
+package org.progms.kdt.order;
+
+import org.progms.kdt.voucher.VoucherService;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
@@ -7,6 +10,7 @@ import java.util.UUID;
 * 오더에 대해서 주문에 대한 비즈니스 로직을 담는 class
 * voucherService와 OrderRepository(정보를 기록하고 조회할 수 있는) 대해 의존성을 가진다.
 * */
+@Service
 public class OrderService {
     private final VoucherService voucherService;
     private final OrderRepository orderRepository;
@@ -19,8 +23,7 @@ public class OrderService {
 
     public Order createOrder(UUID customerId, List<OrderItem> orderItems){
         var order = new Order(UUID.randomUUID(), customerId, orderItems);
-        orderRepository.insert(order);
-        return order;
+        return orderRepository.insert(order);
     }
 
     public Order createOrder(UUID customerId, List<OrderItem> orderItems, UUID voucherId){

@@ -1,4 +1,4 @@
-package org.progms.kdt;
+package org.progms.kdt.order;
 
 public enum OrderStatus {
     ACCEPTED,
