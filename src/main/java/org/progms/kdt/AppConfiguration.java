@@ -10,7 +10,7 @@ import org.springframework.context.annotation.PropertySource;
 @Configuration
 @PropertySource(value = "application.yaml", factory = YamlPropertiesFactory.class)
 public class AppConfiguration {
-
+    @Bean
     VoucherRepository voucherRepository(){
         return new VoucherRepository() {
             @Override
@@ -31,12 +31,12 @@ public class AppConfiguration {
        };
     }
     @Bean
-    public VoucherService voucherService(){
-        return new VoucherService(voucherRepository());
+    public VoucherService voucherService(VoucherRepository voucherRepository){  //DI
+        return new VoucherService(voucherRepository);
     }
     @Bean
-    public OrderService orderService(){
-        return new OrderService(voucherService(), orderRepository());
+    public OrderService orderService(VoucherService voucherService, OrderRepository orderRepository){   //DI
+        return new OrderService(voucherService, orderRepository);
     }
 
 }
