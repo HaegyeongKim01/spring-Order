@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-//주요 객체에 대한 생성, 관계 설정하는 class
-//각각의 컴포넌트 생성하는 메소드 생성, 의존관계 생성
-
 package org.progms.kdt;
 
 import java.util.Optional;
@@ -42,16 +38,5 @@ public class AppConfiguration {
     public OrderService orderService(){
         return new OrderService(voucherService(), orderRepository());
     }
-=======
-package org.progms.kdt;
 
-import org.progms.kdt.configuration.YamlPropertiesFactory;
-import org.springframework.context.annotation.PropertySource;
-@PropertySource(value = "application.yaml", factory = YamlPropertiesFactory.class)
-public class AppConfiguration {
-
-
-
-
->>>>>>> origin/upload
 }
