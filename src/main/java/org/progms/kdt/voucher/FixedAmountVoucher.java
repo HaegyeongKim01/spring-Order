@@ -1,8 +1,10 @@
-package org.progms.kdt;
+package org.progms.kdt.voucher;
+
+import org.progms.kdt.voucher.Voucher;
 
 import java.util.UUID;
 
-public class FixedAmountVoucher implements Voucher{
+public class FixedAmountVoucher implements Voucher {
     private final UUID voucherId;
     private final long amount;
 

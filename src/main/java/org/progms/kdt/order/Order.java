@@ -1,4 +1,6 @@
-package org.progms.kdt;
+package org.progms.kdt.order;
+
+import org.progms.kdt.voucher.Voucher;
 
 import java.util.List;
 import java.util.Optional;
@@ -33,5 +35,9 @@ public class Order {   //ENTITY  //비즈니스 lOGIC이 들어간다.
 
     public void setOrderStatus(OrderStatus orderStatus) {
         this.orderStatus = orderStatus;
+    }
+
+    public UUID getOrderId() {
+        return orderId;
     }
 }
