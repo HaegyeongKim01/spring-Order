@@ -10,9 +10,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
 @Configuration
-//@ComponentScan(basePackages = {"org.progms.kdt.order", "org.progms.kdt.voucher"})
+//@ComponentScan(basePackages = {"org.progms.kdt.order", "org.progms.kdt.voucher"}) //이렇게도 가능
 @ComponentScan(basePackageClasses = {Order.class, Voucher.class})
-@PropertySource(value = "application.yaml", factory = YamlPropertiesFactory.class)
+//@PropertySource("application.properties")
+@PropertySource(value = "application.yaml", factory = YamlPropertiesFactory.class)  //properties
+
 public class AppConfiguration {
 
 

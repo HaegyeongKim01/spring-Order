@@ -4,7 +4,8 @@ import org.progms.kdt.order.OrderItem;
 import org.progms.kdt.order.OrderService;
 import org.progms.kdt.voucher.FixedAmountVoucher;
 import org.progms.kdt.voucher.VoucherRepository;
-import org.springframework.context.ApplicationContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.util.Assert;
 
@@ -14,6 +15,8 @@ import java.util.UUID;
 
 
 public class OrderTester {
+    private static final Logger logger = LoggerFactory.getLogger(OrderTester.class);  //OrderTester가 Logger이름이 된다.
+
     public static void main(String[] args) {
         var applicationContext = new AnnotationConfigApplicationContext(AppConfiguration.class);  //ApplicationContext 생성
 
