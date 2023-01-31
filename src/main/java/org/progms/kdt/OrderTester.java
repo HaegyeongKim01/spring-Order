@@ -4,6 +4,8 @@ import org.progms.kdt.order.OrderItem;
 import org.progms.kdt.order.OrderService;
 import org.progms.kdt.voucher.FixedAmountVoucher;
 import org.progms.kdt.voucher.VoucherRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.util.Assert;
 
@@ -13,6 +15,8 @@ import java.util.UUID;
 
 
 public class OrderTester {
+    private static final Logger logger = LoggerFactory.getLogger(OrderTester.class);  //OrderTester가 Logger이름이 된다.
+
     public static void main(String[] args) {
         var applicationContext = new AnnotationConfigApplicationContext(AppConfiguration.class);  //ApplicationContext 생성
 
@@ -33,5 +37,8 @@ public class OrderTester {
         }}, voucher.getVoucher());
 
         Assert.isTrue(order.totalAmount() == 90L, MessageFormat.format("totalAmount {0} is not 100L", order.totalAmount()));
+
+        //Container에 등록된 모든 Bean이 소멸하고 소멸에 대한 콜백이 일어난다.
+        applicationContext.close();
     }
 }
