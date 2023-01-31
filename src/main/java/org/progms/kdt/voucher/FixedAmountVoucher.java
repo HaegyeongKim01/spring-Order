@@ -15,7 +15,7 @@ public class FixedAmountVoucher implements Voucher {
     //어떻게 discount 할지 Logic을 들고 있게 만든다.
 
     @Override
-    public UUID getVoucher() {
+    public UUID getVoucherId() {
         return voucherId;
     }
 
