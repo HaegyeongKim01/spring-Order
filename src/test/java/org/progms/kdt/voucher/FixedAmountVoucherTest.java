@@ -23,11 +23,13 @@ class FixedAmountVoucherTest {   //SUT가 된다.
 
    private static final Logger logger = LoggerFactory.getLogger(FixedAmountVoucherTest.class);
 
+   //test code가 실행 되기 전 한 번만 실행
     @BeforeAll
     static void setup(){
         logger.info("@BeforeAll - 단 한 번 실행");
     }
 
+    //test code 실행 전 매번 실행
     @BeforeEach
     void init(){
         logger.info("@BeforeEach - 매 테스트 마다 실행");
@@ -49,6 +51,15 @@ class FixedAmountVoucherTest {   //SUT가 된다.
         assertEquals(900, sut.discount(1000));
     }
 
+    @Test
+    @DisplayName("디스카운트된 금액은 마이너스가 될 수 없다.  ")
+    void testMinusDiscountAmount() {
+        //test 하고자 하는 것 == sut
+        var sut = new FixedAmountVoucher(UUID.randomUUID(), 1000);
+
+        assertEquals(0, sut.discount(900));
+    }
+
     @Test   //예외 발생 test
     @DisplayName("할인 금액은 마이너스가 될 수 없다. ")
 //  @Disabled        // 사용하면 이 메소드 동작 X
@@ -56,5 +67,15 @@ class FixedAmountVoucherTest {   //SUT가 된다.
         assertThrows(IllegalArgumentException.class, () -> new FixedAmountVoucher(UUID.randomUUID(), -100));
     }
 
+    @Test   //예외 발생 test
+    @DisplayName("유효한 금액으로만 생성할 수 있다. ")
+    void testVoucherCreation() {
+        assertAll("FixedAmountVoucher creation",
+                () -> assertThrows(IllegalArgumentException.class, () -> new FixedAmountVoucher(UUID.randomUUID(), 0)),
+                () -> assertThrows(IllegalArgumentException.class, () -> new FixedAmountVoucher(UUID.randomUUID(), -100)),
+                () -> assertThrows(IllegalArgumentException.class, () -> new FixedAmountVoucher(UUID.randomUUID(), 100000))
+        );
+
+    }
 
 }
