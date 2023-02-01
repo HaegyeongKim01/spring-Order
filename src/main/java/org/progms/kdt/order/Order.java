@@ -11,7 +11,7 @@ public class Order {   //ENTITY  //비즈니스 lOGIC이 들어간다.
     private final UUID customerId;
     private final List<OrderItem> orderItems;
     private Optional<Voucher> voucher;
-    private OrderStatus orderStatus;
+    private OrderStatus orderStatus = OrderStatus.ACCEPTED;
 
     public Order(UUID orderId, UUID customerId, List<OrderItem> orderItems) {
         this.orderId = orderId;
@@ -39,5 +39,21 @@ public class Order {   //ENTITY  //비즈니스 lOGIC이 들어간다.
 
     public UUID getOrderId() {
         return orderId;
+    }
+
+    public UUID getCustomerId() {
+        return customerId;
+    }
+
+    public List<OrderItem> getOrderItems() {
+        return orderItems;
+    }
+
+    public Optional<Voucher> getVoucher() {
+        return voucher;
+    }
+
+    public OrderStatus getOrderStatus() {
+        return orderStatus;
     }
 }
