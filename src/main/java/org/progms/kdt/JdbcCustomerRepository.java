@@ -10,33 +10,23 @@ public class JdbcCustomerRepository {
     private static final Logger logger = LoggerFactory.getLogger(JdbcCustomerRepository.class);
 
     public static void main(String[] args) throws SQLException {
-        Connection connection = null;
-        Statement statement = null;
-        ResultSet resultSet = null;
-
-        try{
-            connection= DriverManager.getConnection("jdbc:mysql://localhost/order_mgmt", "root", "0917");
-            statement = connection.createStatement();
-            resultSet = statement.executeQuery("select * from customers");
-            while(resultSet.next()){
-                var name =  resultSet.getString("name");
+        var SELECT_SQL = "select * form customers";
+        /**
+         * try block이 끝나면 resource들을 자동으로 close해준다.
+         */
+        try(
+            var  connection= DriverManager.getConnection("jdbc:mysql://localhost/order_mgmt", "root", "0917");
+            var statement = connection.createStatement();
+            var resultSet = statement.executeQuery(SELECT_SQL);
+        ) {
+            while (resultSet.next()) {
+                var name = resultSet.getString("name");
                 var customerid = UUID.nameUUIDFromBytes(resultSet.getBytes("customer_id"));
-                logger.info("customer id -> {} , name -> {}", customerid, name);
-             }
-
-        }
-        catch(SQLException throwables){
-            throwables.printStackTrace();
-            throw throwables;
-        }finally {
-            try{
-                if(connection != null) {connection.close();}
-                if(statement != null) {statement.close();}
-                if(resultSet != null) {resultSet.close();}
-            } catch (SQLException exception){
-                logger.error("Gor error while closing connection", exception);
+                var createdAt = resultSet.getTimestamp("created_at").toLocalDateTime();   //Local DateTime으로 바꿔서 사용 권장
+                logger.info("customer id -> {} , name -> {}, created_at", customerid, name, createdAt);
             }
+        } catch (SQLException throwables) {
+            logger.error("Get error while closing connection", throwables);
         }
     }
-
 }
