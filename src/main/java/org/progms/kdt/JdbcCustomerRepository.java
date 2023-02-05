@@ -48,10 +48,10 @@ public class JdbcCustomerRepository {
         List<java.lang.String> names = new ArrayList<>();
 
         /**
-         * try block이 끝나면 resource들을 자동으로 close해준다.
+         *  try block이 끝나면 resource들을 자동으로 close해준다.
          */
         try(
-            var  connection= DriverManager.getConnection("jdbc:mysql://localhost/order_mgmt", "root", "0917");
+            var connection= DriverManager.getConnection("jdbc:mysql://localhost/order_mgmt", "root", "0917");
             var statement = connection.prepareStatement(SELECT_ALL_SQL);      //prepareStmt 사용! SQL Injection 방지
             var resultSet = statement.executeQuery()
         ) {
