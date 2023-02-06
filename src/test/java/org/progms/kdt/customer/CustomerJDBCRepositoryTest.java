@@ -1,10 +1,7 @@
 package org.progms.kdt.customer;
 
 import com.zaxxer.hikari.HikariDataSource;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
@@ -23,6 +20,7 @@ import static org.hamcrest.Matchers.*;
 
 
 @SpringJUnitConfig
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)   // @Order를 사용하여 test method 순서를 지정
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)   //PER_CLASS : 인스턴스가 하나. clean메소드를 static으로 안 해도 된다.  || PER_METHOD
 class CustomerJDBCRepositoryTest {
 
@@ -52,18 +50,40 @@ class CustomerJDBCRepositoryTest {
     @Autowired
     DataSource dataSource;
 
+    Customer newCustomer;
+    /**
+     * 한 번만 호출
+     * 원래 static method 여야하지만 TestInstance를 PER_CLASS로 지정하여 static 안 적게 해결
+     */
     @BeforeAll
-    void clean(){
+    void setup(){
+        //  Window는 정밀도가 밀리(3자리)
+        var newCustomer = new Customer(UUID.randomUUID(), "test-user10", "test-user10@gmail.com", LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS));
         customerJDBCRepository.deleteAll();
     }
 
     @Test
+    @Order(1)   // 여러 test method의 실행 순서를 줄 수 있는 annotation
     @DisplayName("HikariConnectionPool 정상동작 test")
     public void testHikariConnectionPool(){
         assertThat(dataSource.getClass().getName(), is("com.zaxxer.hikari.HikariDataSource"));
     }
+
+    @Test
+    @Order(2)
+    @DisplayName("고객을 추가할 수 있다. ")
+    public void testInsert() throws InterruptedException {
+        customerJDBCRepository.deleteAll();
+
+        customerJDBCRepository.insert(newCustomer);   //insert 안 되면 customerJDBCRepository에서 throw 가 된다.
+
+        var retrievedCustomer = customerJDBCRepository.findById(newCustomer.getCustomerId());
+        assertThat(retrievedCustomer.isEmpty(), is(false));
+        assertThat(retrievedCustomer.get(), samePropertyValuesAs(newCustomer));   //samePropertyValuesAs 두 개가 같은지 비교
+    }
     
     @Test
+    @Order(3)
     @DisplayName("전체 고객을 조회할 수 있다. ")
     public void testFindAll() throws InterruptedException {
         var customers = customerJDBCRepository.findAll();
@@ -71,9 +91,10 @@ class CustomerJDBCRepositoryTest {
     }
 
     @Test
+    @Order(4)
     @DisplayName("이름으로 고객을 조회할 수 있다. ")
     public void testFindByName() throws InterruptedException {
-        var customer = customerJDBCRepository.findByName("updated-user2");
+        var customer = customerJDBCRepository.findByName(newCustomer.getName());
         assertThat(customer.isEmpty(), is(false));
 
         var unknown = customerJDBCRepository.findByName("unknown-user");
@@ -81,26 +102,15 @@ class CustomerJDBCRepositoryTest {
     }
 
     @Test
+    @Order(5)
     @DisplayName("이메일로 고객을 조회할 수 있다. ")
     public void testFindByEmail() throws InterruptedException {
-        var customer = customerJDBCRepository.findByEmail("new-user@gmail.com");
+        var customer = customerJDBCRepository.findByEmail(newCustomer.getEmail());
         assertThat(customer.isEmpty(), is(false));
 
         var unknown = customerJDBCRepository.findByEmail("unknown-user@gmail.com");
         assertThat(unknown.isEmpty(), is(true));
     }
 
-    @Test
-    @DisplayName("전체를 지운 후 고객을 추가할 수 있다. ")
-    public void testInsert() throws InterruptedException {
-        customerJDBCRepository.deleteAll();
 
-        //  Window는 정밀도가 밀리(3자리)
-        var newCustomer = new Customer(UUID.randomUUID(), "test-user10", "test-user10@gmail.com", LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS));
-        customerJDBCRepository.insert(newCustomer);   //insert 안 되면 customerJDBCRepository에서 throw 가 된다.
-
-        var retrievedCustomer = customerJDBCRepository.findById(newCustomer.getCustomerId());
-        assertThat(retrievedCustomer.isEmpty(), is(false));
-        assertThat(retrievedCustomer.get(), samePropertyValuesAs(newCustomer));   //samePropertyValuesAs 두 개가 같은지 비교
-    }
 }
