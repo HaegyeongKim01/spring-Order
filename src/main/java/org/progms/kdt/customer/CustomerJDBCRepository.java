@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import javax.sql.DataSource;
 import java.nio.ByteBuffer;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -37,7 +38,25 @@ public class CustomerJDBCRepository implements CustomerRepository{
 
     @Override
     public Customer insert(Customer customer) {
-        return null;
+        try(
+            var connection = dataSource.getConnection();
+            var statement = connection.prepareStatement("INSERT INTO customers(customer_id, name, email, created_at) VALUES (UUID_TO_BIN(?), ?, ?, ?)")
+        ) {
+            statement.setBytes(1, customer.getCustomerId().toString().getBytes());
+            statement.setString(2, customer.getName());
+            statement.setString(3, customer.getEmail());
+            statement.setTimestamp(4, Timestamp.valueOf(customer.getCreatedAt()));
+
+            var executeUpdate = statement.executeUpdate();
+            if (executeUpdate != 1) {  //insert는 하나여야 한다. 0 X. 여러 개 X
+                throw new RuntimeException("Nothing was inserted");
+            }
+            return customer;
+
+        } catch (SQLException throwable){
+            logger.error("Got error while closing connection", throwable);
+            throw new RuntimeException(throwable);
+        }
     }
 
     @Override
@@ -70,7 +89,8 @@ public class CustomerJDBCRepository implements CustomerRepository{
 
         try(
             var connection = dataSource.getConnection();
-            var statement = connection.prepareStatement("select * from customers where customer_id = ?");
+            var statement = connection.prepareStatement("select * from customers where customer_id = UUID_TO_BIN(?)");
+            //UUID_TO_BIN() 함수 서야 제대로 변환이 되어 주의할 것!!!
         ){
             statement.setBytes(1, customerId.toString().getBytes());    //sql문의 ? 에 value 설정
             try(var resultSet = statement.executeQuery()){
@@ -84,16 +104,6 @@ public class CustomerJDBCRepository implements CustomerRepository{
             throw new RuntimeException(throwable);
         }
         return allCustomers.stream().findFirst();    //List에서 first가져온다.
-    }
-
-    private void mapToCustomer(List<Customer> allCustomers, java.sql.ResultSet resultSet) throws SQLException{
-        var customerName = resultSet.getString("name");
-        var email = resultSet.getString("email");
-        var customerId = toUUID(resultSet.getBytes("customer_id"));   //version4가 되도록
-        var lastLoginAt = resultSet.getTimestamp("last_login_at") != null ?
-                resultSet.getTimestamp("last_login_at").toLocalDateTime() : null;
-        var createdAt = resultSet.getTimestamp("created_at").toLocalDateTime();
-        allCustomers.add(new Customer(customerId, customerName, email, lastLoginAt, createdAt));
     }
 
     @Override
@@ -142,11 +152,30 @@ public class CustomerJDBCRepository implements CustomerRepository{
 
     @Override
     public void deleteAll() {
-
+        try (
+            var connection = dataSource.getConnection();
+            var statemtent = connection.prepareStatement("DELETE FROM customers");
+        ) {
+            statemtent.executeUpdate();
+        } catch (SQLException throwable){
+            logger.error("Got error while closing connection");
+            throw new RuntimeException(throwable);
+        }
     }
     
     static UUID toUUID(byte[] bytes) {
         var byteBuffer = ByteBuffer.wrap(bytes);
         return new UUID(byteBuffer.getLong(), byteBuffer.getLong());
     }
+
+    private void mapToCustomer(List<Customer> allCustomers, java.sql.ResultSet resultSet) throws SQLException{
+        var customerName = resultSet.getString("name");
+        var email = resultSet.getString("email");
+        var customerId = toUUID(resultSet.getBytes("customer_id"));   //version4가 되도록
+        var lastLoginAt = resultSet.getTimestamp("last_login_at") != null ?
+                resultSet.getTimestamp("last_login_at").toLocalDateTime() : null;
+        var createdAt = resultSet.getTimestamp("created_at").toLocalDateTime();
+        allCustomers.add(new Customer(customerId, customerName, email, lastLoginAt, createdAt));
+    }
+
 }
