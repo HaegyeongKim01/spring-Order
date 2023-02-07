@@ -3,11 +3,14 @@ package org.progms.kdt.customer;
 import com.wix.mysql.EmbeddedMysql;
 import com.zaxxer.hikari.HikariDataSource;
 import org.junit.jupiter.api.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -30,6 +33,8 @@ import static org.hamcrest.Matchers.*;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)   // @Order를 사용하여 test method 순서를 지정
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)   //PER_CLASS : 인스턴스가 하나. clean메소드를 static으로 안 해도 된다.  || PER_METHOD
 class CustomerNamedJDBCRepositoryTest {
+
+    private static final Logger logger = LoggerFactory.getLogger(CustomerJDBCRepositoryTest.class);
 
     @Configuration
     @ComponentScan(
@@ -115,9 +120,13 @@ class CustomerNamedJDBCRepositoryTest {
     @Test
     @Order(2)
     @DisplayName("고객을 추가할 수 있다. ")
-    public void testInsert() throws InterruptedException {
+    public void testInsert() {
 
-        customerJDBCRepository.insert(newCustomer);   //insert 안 되면 customerJDBCRepository에서 throw 가 된다.
+        try{
+            customerJDBCRepository.insert(newCustomer);   //insert 안 되면 customerJDBCRepository에서 throw 가 된다.
+        } catch (BadSqlGrammarException e) {
+            logger.error("Got BadSqlGrammerException error code -> {}", e.getSQLException().getErrorCode(), e);
+        }
 
         var retrievedCustomer = customerJDBCRepository.findById(newCustomer.getCustomerId());
         assertThat(retrievedCustomer.isEmpty(), is(false));

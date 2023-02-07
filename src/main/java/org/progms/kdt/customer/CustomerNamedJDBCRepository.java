@@ -12,7 +12,6 @@ import javax.sql.DataSource;
 import java.nio.ByteBuffer;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.*;
 
