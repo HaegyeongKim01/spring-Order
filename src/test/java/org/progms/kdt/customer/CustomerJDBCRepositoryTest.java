@@ -34,6 +34,7 @@ import static org.hamcrest.Matchers.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)   //PER_CLASS : 인스턴스가 하나. clean메소드를 static으로 안 해도 된다.  || PER_METHOD
 class CustomerJDBCRepositoryTest {
 
+
     @Configuration
     @ComponentScan(
         basePackages = {"org.progms.kdt.customer"}
@@ -112,20 +113,20 @@ class CustomerJDBCRepositoryTest {
     @Test
     @Order(2)
     @DisplayName("고객을 추가할 수 있다. ")
-    public void testInsert() throws InterruptedException {
-        customerJDBCRepository.deleteAll();
+    public void testInsert() {
 
         customerJDBCRepository.insert(newCustomer);   //insert 안 되면 customerJDBCRepository에서 throw 가 된다.
 
         var retrievedCustomer = customerJDBCRepository.findById(newCustomer.getCustomerId());
         assertThat(retrievedCustomer.isEmpty(), is(false));
         assertThat(retrievedCustomer.get(), samePropertyValuesAs(newCustomer));   //samePropertyValuesAs 두 개가 같은지 비교
+
     }
     
     @Test
     @Order(3)
     @DisplayName("전체 고객을 조회할 수 있다. ")
-    public void testFindAll() throws InterruptedException {
+    public void testFindAll() {
         var customers = customerJDBCRepository.findAll();
         assertThat(customers.isEmpty(), is(false));
     }
