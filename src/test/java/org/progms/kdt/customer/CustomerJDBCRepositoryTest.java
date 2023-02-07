@@ -1,5 +1,6 @@
 package org.progms.kdt.customer;
 
+import com.wix.mysql.EmbeddedMysql;
 import com.zaxxer.hikari.HikariDataSource;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
+
+//Embedded Database 사용 import
+import static com.wix.mysql.config.Charset.UTF8;
+import static com.wix.mysql.config.MysqldConfig.aMysqldConfig;
+import static com.wix.mysql.EmbeddedMysql.anEmbeddedMysql;
+import static com.wix.mysql.ScriptResolver.classPathScript;
+import static com.wix.mysql.distribution.Version.v5_7_latest;
+
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import javax.sql.DataSource;
@@ -33,15 +42,15 @@ class CustomerJDBCRepositoryTest {
         @Bean
         public DataSource dataSource(){
             var dataSource = DataSourceBuilder.create()
-                    .url("jdbc:mysql://localhost/order_mgmt")
-                    .username("root")
-                    .password("0917")
+                    .url("jdbc:mysql://localhost:2215/test-order_mgmt")      //Embdded로 사용할 경우 Config에서 지정한 port num을 넣어줘야함. localhost:2215
+                    .username("test")   //Config에서 정의한 username, pw 로 설정
+                    .password("test1234!")
                     .type(HikariDataSource.class)
                     .build();
-            //connectionPoll이 최대 1000까지 만들어진다. show status Threaqd_connected를 보면 알 수 있다.
-            dataSource.setMaximumPoolSize(1000);
-            dataSource.setMinimumIdle(100); //pool에 minimunIde상태로 100개가 들어가있다.
-            return dataSource;
+                //connectionPoll이 최대 1000까지 만들어진다. show status Threaqd_connected를 보면 알 수 있다.
+                dataSource.setMaximumPoolSize(1000);
+                dataSource.setMinimumIdle(100); //pool에 minimunIde상태로 100개가 들어가있다.
+                return dataSource;
         }
 
         /**
@@ -62,15 +71,35 @@ class CustomerJDBCRepositoryTest {
     DataSource dataSource;
 
     Customer newCustomer;
+
+    EmbeddedMysql embeddedMysql;
     /**
      * 한 번만 호출
      * 원래 static method 여야하지만 TestInstance를 PER_CLASS로 지정하여 static 안 적게 해결
+     * DB구동
      */
     @BeforeAll
     void setup(){
         //  Window는 정밀도가 밀리(3자리)
         newCustomer = new Customer(UUID.randomUUID(), "test-user10", "test-user10@gmail.com", LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS));
-        customerJDBCRepository.deleteAll();
+        //Config에 의해 mysql이 만들어지도록
+        var mysqlConfig = aMysqldConfig(v5_7_latest)
+                .withCharset(UTF8)
+                .withPort(2215)
+                .withUser("test", "test1234!")
+                .withTimeZone("Asia/Seoul")
+                .build();
+
+        embeddedMysql = anEmbeddedMysql(mysqlConfig)
+                .addSchema("test-order_mgmt", classPathScript("schema.sql"))
+                .start();
+
+        //customerJDBCRepository.deleteAll();    //@AfterAll stop으로 처리
+    }
+
+    @AfterAll
+    void cleanup(){
+        embeddedMysql.stop();
     }
 
     @Test
