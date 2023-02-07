@@ -7,6 +7,7 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import javax.sql.DataSource;
@@ -41,6 +42,16 @@ class CustomerJDBCRepositoryTest {
             dataSource.setMaximumPoolSize(1000);
             dataSource.setMinimumIdle(100); //pool에 minimunIde상태로 100개가 들어가있다.
             return dataSource;
+        }
+
+        /**
+         * JDBC Template 이용할 때 Bean으로 코드를 작성필요
+         * @param dataSource
+         * @return
+         */
+        @Bean
+        public JdbcTemplate jdbcTemplate(DataSource dataSource) {
+            return new JdbcTemplate(dataSource);
         }
     }
 

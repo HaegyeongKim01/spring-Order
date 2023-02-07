@@ -2,10 +2,15 @@ package org.progms.kdt.customer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.nio.ByteBuffer;
+import java.sql.JDBCType;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -28,156 +33,116 @@ public class CustomerJDBCRepository implements CustomerRepository{
      */
     private final DataSource dataSource;
 
+    private final JdbcTemplate jdbcTemplate;
+
+    //resultSet과 index를 받으면 Customer를 반환해주는 것
+    private static final
+    RowMapper<Customer> customerRowMapper = (resultSet, i) -> {
+        var customerName = resultSet.getString("name");
+        var email = resultSet.getString("email");
+        var customerId = toUUID(resultSet.getBytes("customer_id"));
+        var lastLoginAt = resultSet.getTimestamp("last_login_at") != null ?
+                resultSet.getTimestamp("last_login_at").toLocalDateTime() : null;
+        var creatdAt = resultSet.getTimestamp("created_at").toLocalDateTime();
+
+        return new Customer(customerId, customerName, email, lastLoginAt, creatdAt);
+    };
+
     /**
      *
      * @param dataSource 생성자 주입으로 입력받음
      */
-    public CustomerJDBCRepository(DataSource dataSource) {
+    public CustomerJDBCRepository(DataSource dataSource, JdbcTemplate jdbcTemplate) {
         this.dataSource = dataSource;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
     public Customer insert(Customer customer) {
-        try(
-            var connection = dataSource.getConnection();
-            var statement = connection.prepareStatement("INSERT INTO customers(customer_id, name, email, created_at) VALUES (UUID_TO_BIN(?), ?, ?, ?)")
-        ) {
-            statement.setBytes(1, customer.getCustomerId().toString().getBytes());
-            statement.setString(2, customer.getName());
-            statement.setString(3, customer.getEmail());
-            statement.setTimestamp(4, Timestamp.valueOf(customer.getCreatedAt()));
+        var update = jdbcTemplate.update("INSERT INTO customers(customer_id, name, email, created_at) VALUES (UUID_TO_BIN(?), ?, ?, ?)",
+                customer.getCustomerId().toString().getBytes(),    //?에 들어갈 parameter들
+                customer.getName(),
+                customer.getEmail(),
+                Timestamp.valueOf(customer.getCreatedAt())
+        );
 
-            var executeUpdate = statement.executeUpdate();
-            if (executeUpdate != 1) {  //insert는 하나여야 한다. 0 X. 여러 개 X
-                throw new RuntimeException("Nothing was inserted");
-            }
-            return customer;
-
-        } catch (SQLException throwable){
-            logger.error("Got error while closing connection", throwable);
-            throw new RuntimeException(throwable);
+        if (update != 1){
+            throw new RuntimeException("Noting was inserted");
         }
+
+        return customer;
     }
 
     @Override
     public Customer update(Customer customer) {
-        try(
-            var connection = dataSource.getConnection();
-            var statement = connection.prepareStatement("UPDATE customers SET name = ?, email = ? , last_login_at = ? WHERE customer_id = UUID_TO_BIN(?)");
-        ) {
-            statement.setString(1, customer.getName());
-            statement.setString(2, customer.getEmail());
-            statement.setTimestamp(3, customer.getLastLoginAt() != null ? Timestamp.valueOf(customer.getCreatedAt()) : null);
-            statement.setBytes(4, customer.getCustomerId().toString().getBytes());
-            var executeUpdate = statement.executeUpdate();
-            if (executeUpdate != 1){
-                throw new RuntimeException("Noting was updated");
-            }
-            return customer;
 
-        } catch (SQLException throwable){
-            logger.error("Got error while closing connection", throwable);
-            throw new RuntimeException(throwable);
+        var update = jdbcTemplate.update("UPDATE customers SET name = ?, email = ? , last_login_at = ? WHERE customer_id = UUID_TO_BIN(?)",
+                customer.getName(),
+                customer.getEmail(),
+                customer.getLastLoginAt() != null ? Timestamp.valueOf(customer.getCreatedAt()) : null,
+                customer.getCustomerId().toString().getBytes()
+        );
+
+        if (update != 1){
+            throw new RuntimeException("Noting was inserted");
         }
+
+        return customer;
+    }
+
+    @Override
+    public int count() {
+        return jdbcTemplate.queryForObject("select count(*) from customers", Integer.class); //Integer로 return 받겠다.
     }
 
     @Override
     public List<Customer> findAll() {
-        List<Customer> allCustomers = new ArrayList<>();
-        try(
-            var connection = dataSource.getConnection();
-            var statement = connection.prepareStatement("select * from customers");      //prepareStmt 사용! SQL Injection 방지
-            var resultSet = statement.executeQuery()
-        ) {
-            while (resultSet.next()) {
-                mapToCustomer(allCustomers, resultSet);
-            }
-        } catch (SQLException throwable) {
-            logger.error("Got error while closing connection", throwable);
-            throw new RuntimeException(throwable);
-        }
-
-        return allCustomers;
+       return jdbcTemplate.query("select * from customers", customerRowMapper);
     }
 
     @Override
     public Optional<Customer> findById(UUID customerId) {
-        List<Customer> allCustomers = new ArrayList<>();
-
-        try(
-            var connection = dataSource.getConnection();
-            var statement = connection.prepareStatement("select * from customers where customer_id = UUID_TO_BIN(?)");
-            //UUID_TO_BIN() 함수 서야 제대로 변환이 되어 주의할 것!!!
-        ){
-            statement.setBytes(1, customerId.toString().getBytes());    //sql문의 ? 에 value 설정
-            try(var resultSet = statement.executeQuery()){
-                while(resultSet.next()){
-                    mapToCustomer(allCustomers, resultSet);
-                }
-            }
-
-        } catch (SQLException throwable) {
-            logger.error("Got error while closing connection");
-            throw new RuntimeException(throwable);
+        //query() 는 List를 반환한다. 하나의 Object가지고 오고 싶을 때는 queryForObject()사용
+        try{
+            return Optional.ofNullable(jdbcTemplate.queryForObject(
+                    "select * from customers where customer_id = UUID_TO_BIN(?)",
+                    customerRowMapper,
+                    customerId.toString().getBytes())
+            );
+        } catch (EmptyResultDataAccessException e){
+            logger.error("Got empty result", e);
+            return Optional.empty();
         }
-        return allCustomers.stream().findFirst();    //List에서 first가져온다.
+
     }
 
     @Override
     public Optional<Customer> findByName(String name) {
-        List<Customer> allCustomers = new ArrayList<>();
-
-        try(
-            var connection = dataSource.getConnection();
-            var statement = connection.prepareStatement("select * from customers where name = ?");
-        ){
-            statement.setString(1, name);    //sql문의 ? 에 value 설정
-            try (var resultSet = statement.executeQuery()){
-                while(resultSet.next()){
-                    mapToCustomer(allCustomers, resultSet);
-                }
-            }
-
-        } catch (SQLException throwable) {
-            logger.error("Got error while closing connection");
-            throw new RuntimeException(throwable);
+        try{
+            return Optional.ofNullable(jdbcTemplate.queryForObject("select * from customers WHERE name = ?",
+                    customerRowMapper,
+                    name));
+        } catch (EmptyResultDataAccessException e) {
+            logger.error("got empty result" , e);
+            return Optional.empty();
         }
-        return allCustomers.stream().findFirst();    //List에서 first가져온다.
     }
 
     @Override
     public Optional<Customer> findByEmail(String email) {
-        List<Customer> allCustomer = new ArrayList<>();
-
-        try(
-            var connection = dataSource.getConnection();
-            var statement = connection.prepareStatement("select * from customers where email = ?");
-        ){
-            statement.setString(1, email);    //sql문의 ? 에 value 설정
-            try(var resultSet = statement.executeQuery()){
-                while(resultSet.next()){
-                    mapToCustomer(allCustomer, resultSet);
-                }
-            }
-
-        } catch (SQLException throwable) {
-            logger.error("Got error while closing connection");
-            throw new RuntimeException(throwable);
+        try {
+            return Optional.ofNullable(jdbcTemplate.queryForObject("select * from customers WHERE email = ?",
+                    customerRowMapper,
+                    email));
+        } catch (EmptyResultDataAccessException e) {
+            logger.error("got empty result", e);
+            return Optional.empty();
         }
-        return allCustomer.stream().findFirst();    //List에서 first가져온다.
     }
 
     @Override
     public void deleteAll() {
-        try (
-            var connection = dataSource.getConnection();
-            var statement = connection.prepareStatement("DELETE FROM customers");
-        ) {
-            statement.executeUpdate();
-        } catch (SQLException throwable){
-            logger.error("Got error while closing connection");
-            throw new RuntimeException(throwable);
-        }
+        jdbcTemplate.update("delete from customers");
     }
     
     static UUID toUUID(byte[] bytes) {
