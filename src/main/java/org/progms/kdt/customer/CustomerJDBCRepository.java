@@ -59,7 +59,8 @@ public class CustomerJDBCRepository implements CustomerRepository{
 
     @Override
     public Customer insert(Customer customer) {
-        var update = jdbcTemplate.update("INSERT INTO customers(customer_id, name, email, created_at) VALUES (UUID_TO_BIN(?), ?, ?, ?)",
+        //var update = jdbcTemplate.update("INSERT INTO customers(customer_id, name, email, created_at) VALUES (UUID_TO_BIN(?), ?, ?, ?)",  window 는 오류
+        var update = jdbcTemplate.update("INSERT INTO customers(customer_id, name, email, created_at) VALUES (UNHEX(REPLACE(?, '-', '')), ?, ?, ?)",
                 customer.getCustomerId().toString().getBytes(),    //?에 들어갈 parameter들
                 customer.getName(),
                 customer.getEmail(),
@@ -76,7 +77,8 @@ public class CustomerJDBCRepository implements CustomerRepository{
     @Override
     public Customer update(Customer customer) {
 
-        var update = jdbcTemplate.update("UPDATE customers SET name = ?, email = ? , last_login_at = ? WHERE customer_id = UUID_TO_BIN(?)",
+        //var update = jdbcTemplate.update("UPDATE customers SET name = ?, email = ? , last_login_at = ? WHERE customer_id = UUID_TO_BIN(?)",
+        var update = jdbcTemplate.update("UPDATE customers SET name = ?, email = ?, last_login_at = ?  WHERE customer_id = UNHEX(REPLACE(?, '-', ''))",
                 customer.getName(),
                 customer.getEmail(),
                 customer.getLastLoginAt() != null ? Timestamp.valueOf(customer.getCreatedAt()) : null,
@@ -104,8 +106,7 @@ public class CustomerJDBCRepository implements CustomerRepository{
     public Optional<Customer> findById(UUID customerId) {
         //query() 는 List를 반환한다. 하나의 Object가지고 오고 싶을 때는 queryForObject()사용
         try{
-            return Optional.ofNullable(jdbcTemplate.queryForObject(
-                    "select * from customers where customer_id = UUID_TO_BIN(?)",
+            return Optional.ofNullable(jdbcTemplate.queryForObject("select * from customers WHERE customer_id = UNHEX(REPLACE(?, '-', ''))",
                     customerRowMapper,
                     customerId.toString().getBytes())
             );
