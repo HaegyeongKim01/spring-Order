@@ -58,7 +58,7 @@ class CustomerJDBCRepositoryTest {
     @BeforeAll
     void setup(){
         //  Window는 정밀도가 밀리(3자리)
-        var newCustomer = new Customer(UUID.randomUUID(), "test-user10", "test-user10@gmail.com", LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS));
+        newCustomer = new Customer(UUID.randomUUID(), "test-user10", "test-user10@gmail.com", LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS));
         customerJDBCRepository.deleteAll();
     }
 
@@ -104,7 +104,7 @@ class CustomerJDBCRepositoryTest {
     @Test
     @Order(5)
     @DisplayName("이메일로 고객을 조회할 수 있다. ")
-    public void testFindByEmail() throws InterruptedException {
+    public void testFindByEmail()  {
         var customer = customerJDBCRepository.findByEmail(newCustomer.getEmail());
         assertThat(customer.isEmpty(), is(false));
 
@@ -112,5 +112,21 @@ class CustomerJDBCRepositoryTest {
         assertThat(unknown.isEmpty(), is(true));
     }
 
+    @Test
+    @Order(6)
+    @DisplayName("고객을 수정할 수 있다. ")
+    public void testUpdate()  {
+        newCustomer.changeName("updated-user");
+        customerJDBCRepository.update(newCustomer);
+
+        var all = customerJDBCRepository.findAll();
+        assertThat(all, hasSize(1));
+        assertThat(all, everyItem(samePropertyValuesAs(newCustomer)));
+
+        var retrievedCustomer = customerJDBCRepository.findById(newCustomer.getCustomerId());
+        assertThat(retrievedCustomer.isEmpty(), is(false));
+        assertThat(retrievedCustomer.get(), samePropertyValuesAs(newCustomer));
+
+    }
 
 }
