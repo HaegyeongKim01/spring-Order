@@ -1,6 +1,5 @@
 package org.progms.kdt.voucher;
 
-import org.progms.kdt.voucher.Voucher;
 
 import java.util.UUID;
 
@@ -31,4 +30,11 @@ public class FixedAmountVoucher implements Voucher {
         return (discountAmount<0) ? 0: discountAmount;
     }
 
+    @Override
+    public String toString() {
+        return "FixedAmountVoucher{" +
+                "voucherId=" + voucherId +
+                ", amount=" + amount +
+                '}';
+    }
 }
