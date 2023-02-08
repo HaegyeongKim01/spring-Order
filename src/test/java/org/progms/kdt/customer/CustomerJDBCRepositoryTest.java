@@ -37,7 +37,7 @@ class CustomerJDBCRepositoryTest {
 
     @Configuration
     @ComponentScan(
-        basePackages = {"org.progms.kdt.customer"}
+            basePackages = {"org.progms.kdt.customer"}
     )
     static class Config{
         @Bean
@@ -48,10 +48,10 @@ class CustomerJDBCRepositoryTest {
                     .password("test1234!")
                     .type(HikariDataSource.class)
                     .build();
-                //connectionPoll이 최대 1000까지 만들어진다. show status Threaqd_connected를 보면 알 수 있다.
-                dataSource.setMaximumPoolSize(1000);
-                dataSource.setMinimumIdle(100); //pool에 minimunIde상태로 100개가 들어가있다.
-                return dataSource;
+            //connectionPoll이 최대 1000까지 만들어진다. show status Threaqd_connected를 보면 알 수 있다.
+            dataSource.setMaximumPoolSize(1000);
+            dataSource.setMinimumIdle(100); //pool에 minimunIde상태로 100개가 들어가있다.
+            return dataSource;
         }
 
         /**
@@ -122,7 +122,7 @@ class CustomerJDBCRepositoryTest {
         assertThat(retrievedCustomer.get(), samePropertyValuesAs(newCustomer));   //samePropertyValuesAs 두 개가 같은지 비교
 
     }
-    
+
     @Test
     @Order(3)
     @DisplayName("전체 고객을 조회할 수 있다. ")
