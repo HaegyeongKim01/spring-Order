@@ -6,9 +6,6 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallbackWithoutResult;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.nio.ByteBuffer;
 import java.sql.ResultSet;
@@ -28,7 +25,7 @@ public class CustomerNamedJDBCRepository implements CustomerRepository{
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    private final TransactionTemplate transactionTemplate;
+//    private final TransactionTemplate transactionTemplate;
 
     //resultSet과 index를 받으면 Customer를 반환해주는 것
     private static final RowMapper<Customer> customerRowMapper = (resultSet, i) -> {
@@ -42,13 +39,10 @@ public class CustomerNamedJDBCRepository implements CustomerRepository{
         return new Customer(customerId, customerName, email, lastLoginAt, creatdAt);
     };
 
-    /**
-     * @param jdbcTemplate        생성자 주입으로 입력받음
-     * @param transactionTemplate
-     */
-    public CustomerNamedJDBCRepository(NamedParameterJdbcTemplate jdbcTemplate, TransactionTemplate transactionTemplate) {
+    //생성자 주입으로 입력받음
+    public CustomerNamedJDBCRepository(NamedParameterJdbcTemplate jdbcTemplate) { //, TransactionTemplate transactionTemplate) {
         this.jdbcTemplate = jdbcTemplate;
-        this.transactionTemplate = transactionTemplate;
+//        this.transactionTemplate = transactionTemplate;
     }
 
     private Map<String, Object> toParamMap(Customer customer) {
@@ -136,15 +130,17 @@ public class CustomerNamedJDBCRepository implements CustomerRepository{
         jdbcTemplate.update("delete from customers", Collections.emptyMap());
     }
 
-        public void testTransaction(Customer customer) {
-        transactionTemplate.execute(new TransactionCallbackWithoutResult() {
-            @Override
-            protected void doInTransactionWithoutResult(TransactionStatus status) {
-                jdbcTemplate.update("UPDATE customers SET name = :name WHERE customer_id = UNHEX(REPLACE(:customerId, '-', ''))", toParamMap(customer));
-                jdbcTemplate.update("UPDATE customers SET email = :email WHERE customer_id = UNHEX(REPLACE(:customerId, '-', ''))", toParamMap(customer));
-            }
-        });
-    }
+//    public void testTransaction(Customer customer) {
+//        transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+//            @Override
+//            protected void doInTransactionWithoutResult(TransactionStatus status) {
+//                jdbcTemplate.update("UPDATE customers SET name = :name WHERE customer_id = UNHEX(REPLACE(:customerId, '-', ''))", toParamMap(customer));
+//                jdbcTemplate.update("UPDATE customers SET email = :email WHERE customer_id = UNHEX(REPLACE(:customerId, '-', ''))", toParamMap(customer));
+//            }
+//        });
+//    }
+
+
 
     static UUID toUUID(byte[] bytes) {
         var byteBuffer = ByteBuffer.wrap(bytes);
