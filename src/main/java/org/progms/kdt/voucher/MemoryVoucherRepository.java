@@ -1,12 +1,10 @@
 package org.progms.kdt.voucher;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Qualifier;
+
+import org.progms.kdt.aop.TrackTime;
+
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Primary;
+
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
@@ -35,6 +33,7 @@ public class MemoryVoucherRepository implements VoucherRepository /*, Initializi
     }
 
     @Override
+    @TrackTime         //AOP   부가기능 동작
     public Voucher insert(Voucher voucher) {
         storage.put(voucher.getVoucherId(), voucher);
         return voucher;
