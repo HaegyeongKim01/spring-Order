@@ -3,12 +3,10 @@ package org.progms.kdt.customer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.sql.DataSource;
 import java.nio.ByteBuffer;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -52,27 +50,24 @@ public class CustomerNamedJDBCRepository implements CustomerRepository{
             put("customerId", customer.getCustomerId().toString().getBytes());
             put("name", customer.getName());
             put("email", customer.getEmail());
-            //put("createdAt", customer.getCreatedAt());
+            put("createdAt", Timestamp.valueOf(customer.getCreatedAt()));
             put("lastLoginAt", customer.getLastLoginAt() != null ? Timestamp.valueOf(customer.getLastLoginAt()) : null );
         }};
     }
 
     @Override
     public Customer insert(Customer customer) {
-
-        var update = jdbcTemplate.update("INSERT INTO customers(customer_id, name, email, created_at) VALUES (UUID_TO_BIN(:customerID), :name, :email, :createdAt",
+        var update = jdbcTemplate.update("INSERT INTO customers(customer_id, name, email, created_at) VALUES (UNHEX(REPLACE(:customerId, '-', '')), :name, :email, :createdAt)",
                 toParamMap(customer));
 
-        if (update != 1){
-            throw new RuntimeException("Noting was inserted");
-        }
+        if(update != 1) throw new RuntimeException("Noting was inserted");
 
         return customer;
     }
 
     @Override
     public Customer update(Customer customer) {
-        var update = jdbcTemplate.update("UPDATE customers SET name = :name, email = :email, last_login_at = :lastLoginAt  WHERE customer_id = UUID_TO_BIN(:customerId",
+        var update = jdbcTemplate.update("UPDATE customers SET name = :name, last_login_at = :lastLoginAt WHERE customer_id = UNHEX(REPLACE(:customerId, '-', ''))",
                 toParamMap(customer));
 
         if (update != 1){
@@ -89,14 +84,14 @@ public class CustomerNamedJDBCRepository implements CustomerRepository{
 
     @Override
     public List<Customer> findAll() {
-       return jdbcTemplate.query("select * from customers", customerRowMapper);
+        return jdbcTemplate.query("select * from customers", customerRowMapper);
     }
 
     @Override
     public Optional<Customer> findById(UUID customerId) {
         //query() 는 List를 반환한다. 하나의 Object가지고 오고 싶을 때는 queryForObject()사용
         try{
-            return Optional.ofNullable(jdbcTemplate.queryForObject("select * from customers WHERE customer_id = UNHEX(REPLACE(?, '-', ''))",
+            return Optional.ofNullable(jdbcTemplate.queryForObject("select * from customers WHERE customer_id = UNHEX(REPLACE(:customerId, '-', ''))",
                     Collections.singletonMap("customerId", customerId.toString().getBytes()),
                     customerRowMapper)
             );
@@ -104,7 +99,6 @@ public class CustomerNamedJDBCRepository implements CustomerRepository{
             logger.error("Got empty result", e);
             return Optional.empty();
         }
-
     }
 
     @Override
@@ -135,7 +129,7 @@ public class CustomerNamedJDBCRepository implements CustomerRepository{
     public void deleteAll() {
         jdbcTemplate.update("delete from customers", Collections.emptyMap());
     }
-    
+
     static UUID toUUID(byte[] bytes) {
         var byteBuffer = ByteBuffer.wrap(bytes);
         return new UUID(byteBuffer.getLong(), byteBuffer.getLong());

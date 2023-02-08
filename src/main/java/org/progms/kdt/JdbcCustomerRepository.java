@@ -24,11 +24,11 @@ public class JdbcCustomerRepository {
          * try block이 끝나면 resource들을 자동으로 close해준다.
          */
         try(
-            var connection= DriverManager.getConnection("jdbc:mysql://localhost/order_mgmt", "root", "0917");
-            var statement = connection.prepareStatement(SELECT_BY_NAME_SQL);      //prepareStmt 사용! SQL Injection 방지
+                var connection= DriverManager.getConnection("jdbc:mysql://localhost/order_mgmt", "root", "0917");
+                var statement = connection.prepareStatement(SELECT_BY_NAME_SQL);      //prepareStmt 사용! SQL Injection 방지
         ) {
             statement.setString(1, name);   //시작 index, 실제 전달받는 변수   .  //parameter 전달해야함
-            try(var resultSet = statement.executeQuery()){       //실행 
+            try(var resultSet = statement.executeQuery()){       //실행
                 while (resultSet.next()) {
                     var customerName = resultSet.getString("name");
                     var customerId = UUID.nameUUIDFromBytes(resultSet.getBytes("customer_id"));
@@ -51,9 +51,9 @@ public class JdbcCustomerRepository {
          *  try block이 끝나면 resource들을 자동으로 close해준다.
          */
         try(
-            var connection= DriverManager.getConnection("jdbc:mysql://localhost/order_mgmt", "root", "0917");
-            var statement = connection.prepareStatement(SELECT_ALL_SQL);      //prepareStmt 사용! SQL Injection 방지
-            var resultSet = statement.executeQuery()
+                var connection= DriverManager.getConnection("jdbc:mysql://localhost/order_mgmt", "root", "0917");
+                var statement = connection.prepareStatement(SELECT_ALL_SQL);      //prepareStmt 사용! SQL Injection 방지
+                var resultSet = statement.executeQuery()
         ) {
             while (resultSet.next()) {
                 var customerName = resultSet.getString("name");
@@ -97,8 +97,8 @@ public class JdbcCustomerRepository {
 
     public int insertCustomer(UUID customerId, String name, String email){
         try(
-            var connection= DriverManager.getConnection("jdbc:mysql://localhost/order_mgmt", "root", "0917");
-            var statement = connection.prepareStatement(INSERT_SQL);      //prepareStmt 사용! SQL Injection 방지
+                var connection= DriverManager.getConnection("jdbc:mysql://localhost/order_mgmt", "root", "0917");
+                var statement = connection.prepareStatement(INSERT_SQL);      //prepareStmt 사용! SQL Injection 방지
         ) {
             statement.setBytes(1, customerId.toString().getBytes());   //시작 index, 실제 전달받는 변수   .  //parameter 전달해야함
             statement.setString(2, name);
@@ -112,8 +112,8 @@ public class JdbcCustomerRepository {
 
     public int updateCustomerName(UUID customerId, String name){
         try(
-            var connection= DriverManager.getConnection("jdbc:mysql://localhost/order_mgmt", "root", "0917");
-            var statement = connection.prepareStatement(UPDATE_BY_ID_SQL);      //prepareStmt 사용! SQL Injection 방지
+                var connection= DriverManager.getConnection("jdbc:mysql://localhost/order_mgmt", "root", "0917");
+                var statement = connection.prepareStatement(UPDATE_BY_ID_SQL);      //prepareStmt 사용! SQL Injection 방지
         ) {
             statement.setString(1, name);
             statement.setBytes(2, customerId.toString().getBytes());   //시작 index, 실제 전달받는 변수   .  //parameter 전달해야함
@@ -126,8 +126,8 @@ public class JdbcCustomerRepository {
 
     public int deleteAllCustomers(){
         try(
-            var connection= DriverManager.getConnection("jdbc:mysql://localhost/order_mgmt", "root", "0917");
-            var statement = connection.prepareStatement(DELETE_SQL);      //prepareStmt 사용! SQL Injection 방지
+                var connection= DriverManager.getConnection("jdbc:mysql://localhost/order_mgmt", "root", "0917");
+                var statement = connection.prepareStatement(DELETE_SQL);      //prepareStmt 사용! SQL Injection 방지
         ) {
             return statement.executeUpdate();   //excuteUpdate() 한다.
         }catch (SQLException throwable){
