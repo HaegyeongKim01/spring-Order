@@ -9,11 +9,9 @@ import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.nio.ByteBuffer;
-import java.sql.JDBCType;
-import java.sql.ResultSet;
+
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -145,7 +143,7 @@ public class CustomerJDBCRepository implements CustomerRepository{
     public void deleteAll() {
         jdbcTemplate.update("delete from customers");
     }
-    
+
     static UUID toUUID(byte[] bytes) {
         var byteBuffer = ByteBuffer.wrap(bytes);
         return new UUID(byteBuffer.getLong(), byteBuffer.getLong());

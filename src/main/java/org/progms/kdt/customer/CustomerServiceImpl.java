@@ -2,6 +2,7 @@ package org.progms.kdt.customer;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.List;
 
@@ -21,5 +22,9 @@ public class CustomerServiceImpl implements CustomerService {
         customers.forEach(customerRepository::insert);
     }
 
+    @GetMapping("/customers/new")
+    public String viewNewCustomerPage(){
+        return "views/new-customers";
+    }
 
 }
