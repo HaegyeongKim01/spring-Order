@@ -2,6 +2,7 @@ package org.progms.kdt.customer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Primary;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -18,6 +19,7 @@ import java.util.*;
  * CustomerJDBCRepositoryTest에서 ComponentScan사용하려면 대상 class에 @Repository 어노테이션 필요.그래야 Bean을 찾음
  */
 @Repository
+@Primary
 public class CustomerNamedJDBCRepository implements CustomerRepository{
 
 

@@ -8,9 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
-@ComponentScan(
-        basePackages = {"org.progms.kdt.voucher", "org.progms.kdt.order"}
-)
+@ComponentScan(basePackages = {"org.progms.kdt.order", "org.progms.kdt.voucher", "org.progms.kdt.configuration", "org.progms.kdt.servlet"})
 public class KdtApplication {
     private static final Logger logger = LoggerFactory.getLogger(OrderTester.class);  //OrderTester가 Logger이름이 된다.
 
